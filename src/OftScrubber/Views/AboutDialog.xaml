@@ -1,0 +1,57 @@
+<Window x:Class="OftScrubber.Views.AboutDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="About OFT Scrubber"
+        Width="480"
+        SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="{StaticResource WindowBrush}"
+        FontFamily="{StaticResource UiFont}"
+        TextOptions.TextFormattingMode="Display">
+
+    <StackPanel Margin="22,20,22,18">
+
+        <StackPanel Orientation="Horizontal">
+            <TextBlock Text="&#xE715;"
+                       Style="{StaticResource IconText}"
+                       FontSize="30"
+                       VerticalAlignment="Center"
+                       Margin="0,0,14,0" />
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="OFT Scrubber" Style="{StaticResource TitleText}" />
+                <TextBlock x:Name="VersionText" Style="{StaticResource SecondaryText}" Margin="0,2,0,0" />
+            </StackPanel>
+        </StackPanel>
+
+        <TextBlock Text="Opens Outlook templates, finds their variables, and produces a completed HTML email as a draft you review and send yourself."
+                   Style="{StaticResource SecondaryText}"
+                   TextWrapping="Wrap"
+                   Margin="0,16,0,0" />
+
+        <Border Height="1" Background="{StaticResource BorderBrush}" Margin="0,16,0,14" />
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Text="Runtime" Style="{StaticResource SecondaryText}" Margin="0,0,18,5" />
+            <TextBlock x:Name="RuntimeText" Grid.Column="1" FontSize="12" Margin="0,0,0,5" TextWrapping="Wrap" />
+
+            <TextBlock Grid.Row="1" Text="Preview" Style="{StaticResource SecondaryText}" Margin="0,0,18,0" />
+            <TextBlock Grid.Row="1" Grid.Column="1" FontSize="12" TextWrapping="Wrap"
+                       Text="Scripts, plug-ins and network access are switched off. Templates are never uploaded anywhere." />
+        </Grid>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="Close" Width="88" IsCancel="True" IsDefault="True" Style="{StaticResource AccentButton}" />
+        </StackPanel>
+    </StackPanel>
+</Window>

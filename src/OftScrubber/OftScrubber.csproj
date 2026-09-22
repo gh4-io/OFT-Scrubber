@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <StartupObject>OftScrubber.SingleInstanceApplication</StartupObject>
+
+    <!--
+      .NET Framework 4.8 ships with Windows 10/11, so the single exe runs on a clean machine.
+      Same family constraint as ICS Scrubber: no runtime NuGet packages. See docs/DECISIONS.md.
+    -->
+    <TargetFramework>net48</TargetFramework>
+
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>OftScrubber</RootNamespace>
+    <AssemblyName>OftScrubber</AssemblyName>
+    <Version>0.1.1</Version>
+    <!-- Keep the release number stable while identifying every build, including builds without Git. -->
+    <BuildTimestamp Condition="'$(BuildTimestamp)' == ''">$([System.DateTime]::UtcNow.ToString('yyyyMMdd.HHmmss'))Z</BuildTimestamp>
+    <InformationalVersion>$(Version)+build.$(BuildTimestamp)</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <Product>OFT Scrubber</Product>
+    <Company>Jason Grace</Company>
+    <Description>Fills Outlook .oft template variables and produces a completed HTML email.</Description>
+    <Copyright>Jason Grace</Copyright>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    <GenerateSupportedRuntime>false</GenerateSupportedRuntime>
+    <DebugType>embedded</DebugType>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="System.Windows.Forms" />
+    <!-- Hosts the WinForms WebBrowser so the preview can switch off scripts. See docs/DECISIONS.md. -->
+    <Reference Include="WindowsFormsIntegration" />
+    <!-- Supplies the 4.8 reference assemblies, so no Visual Studio install is needed. -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,792 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+      Menu bar, tree and splitters. WPF ships none of these looking like Windows 11, so each
+      one is templated from scratch. Colours all come from Fluent.xaml.
+    -->
+
+    <!-- ===== Menu bar ===== -->
+
+    <Style TargetType="Menu">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Menu">
+                    <ItemsPresenter />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="{x:Static MenuItem.SeparatorStyleKey}" TargetType="Separator">
+        <Setter Property="Height" Value="1" />
+        <Setter Property="Margin" Value="8,5" />
+        <Setter Property="Background" Value="{StaticResource BorderBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Separator">
+                    <Border Height="1" Background="{StaticResource BorderBrush}" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- The dropdown surface, shared by top-level menus and nested submenus. -->
+    <ControlTemplate x:Key="MenuPopupSurface" TargetType="ContentControl">
+        <Border Background="{StaticResource CardBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="7"
+                Padding="4"
+                Margin="0,2,10,10">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="14" ShadowDepth="2" Opacity="0.16" Color="Black" />
+            </Border.Effect>
+            <ContentPresenter />
+        </Border>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="TopLevelMenuHeader" TargetType="MenuItem">
+        <Grid>
+            <Border x:Name="Shell" Background="Transparent" CornerRadius="4" Padding="9,4">
+                <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" />
+            </Border>
+
+            <Popup x:Name="PART_Popup"
+                   AllowsTransparency="True"
+                   Placement="Bottom"
+                   VerticalOffset="1"
+                   IsOpen="{TemplateBinding IsSubmenuOpen}"
+                   Focusable="False"
+                   PopupAnimation="None">
+                <ContentControl Template="{StaticResource MenuPopupSurface}">
+                    <StackPanel IsItemsHost="True"
+                                MinWidth="190"
+                                KeyboardNavigation.DirectionalNavigation="Cycle" />
+                </ContentControl>
+            </Popup>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Shell" Property="Background" Value="{StaticResource HoverBrush}" />
+            </Trigger>
+            <Trigger Property="IsSubmenuOpen" Value="True">
+                <Setter TargetName="Shell" Property="Background" Value="{StaticResource BorderBrush}" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- A top-level entry with no children, used for About. -->
+    <ControlTemplate x:Key="TopLevelMenuItem" TargetType="MenuItem">
+        <Border x:Name="Shell" Background="Transparent" CornerRadius="4" Padding="9,4">
+            <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" />
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Shell" Property="Background" Value="{StaticResource HoverBrush}" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="SubMenuItem" TargetType="MenuItem">
+        <Border x:Name="Shell" Background="Transparent" CornerRadius="4">
+            <Grid MinHeight="28">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="28" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Path x:Name="Tick"
+                      Data="M 6,10 L 9,13 L 15,6.5"
+                      Stroke="{StaticResource AccentBrush}"
+                      StrokeThickness="1.7"
+                      StrokeStartLineCap="Round"
+                      StrokeEndLineCap="Round"
+                      StrokeLineJoin="Round"
+                      VerticalAlignment="Center"
+                      Visibility="Collapsed" />
+
+                <ContentPresenter Grid.Column="1"
+                                  ContentSource="Header"
+                                  RecognizesAccessKey="True"
+                                  VerticalAlignment="Center"
+                                  Margin="0,0,14,0" />
+
+                <TextBlock Grid.Column="2"
+                           Text="{TemplateBinding InputGestureText}"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           FontSize="11.5"
+                           VerticalAlignment="Center"
+                           Margin="0,0,10,0" />
+            </Grid>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Tick" Property="Visibility" Value="Visible" />
+            </Trigger>
+            <Trigger Property="IsHighlighted" Value="True">
+                <Setter TargetName="Shell" Property="Background" Value="{StaticResource HoverBrush}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="SubMenuHeader" TargetType="MenuItem">
+        <Grid>
+            <Border x:Name="Shell" Background="Transparent" CornerRadius="4">
+                <Grid MinHeight="28">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="28" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <ContentPresenter Grid.Column="1"
+                                      ContentSource="Header"
+                                      RecognizesAccessKey="True"
+                                      VerticalAlignment="Center"
+                                      Margin="0,0,14,0" />
+
+                    <Path Grid.Column="2"
+                          Data="M 0,0 L 4,4 L 0,8"
+                          Stroke="{StaticResource TextMutedBrush}"
+                          StrokeThickness="1.3"
+                          VerticalAlignment="Center"
+                          Margin="0,0,10,0" />
+                </Grid>
+            </Border>
+
+            <Popup x:Name="PART_Popup"
+                   AllowsTransparency="True"
+                   Placement="Right"
+                   HorizontalOffset="2"
+                   IsOpen="{TemplateBinding IsSubmenuOpen}"
+                   Focusable="False"
+                   PopupAnimation="None">
+                <ContentControl Template="{StaticResource MenuPopupSurface}">
+                    <StackPanel IsItemsHost="True"
+                                MinWidth="150"
+                                KeyboardNavigation.DirectionalNavigation="Cycle" />
+                </ContentControl>
+            </Popup>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsHighlighted" Value="True">
+                <Setter TargetName="Shell" Property="Background" Value="{StaticResource HoverBrush}" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <Style TargetType="MenuItem">
+        <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Style.Triggers>
+            <Trigger Property="Role" Value="TopLevelHeader">
+                <Setter Property="Template" Value="{StaticResource TopLevelMenuHeader}" />
+            </Trigger>
+            <Trigger Property="Role" Value="TopLevelItem">
+                <Setter Property="Template" Value="{StaticResource TopLevelMenuItem}" />
+            </Trigger>
+            <Trigger Property="Role" Value="SubmenuHeader">
+                <Setter Property="Template" Value="{StaticResource SubMenuHeader}" />
+            </Trigger>
+            <Trigger Property="Role" Value="SubmenuItem">
+                <Setter Property="Template" Value="{StaticResource SubMenuItem}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- ===== Command bar ===== -->
+
+    <Style x:Key="ToolButton" TargetType="Button">
+        <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="Padding" Value="9,5" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Shell" Background="Transparent" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Shell" Property="Background" Value="{StaticResource HoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Shell" Property="Background" Value="{StaticResource BorderBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+                            <Setter Property="Cursor" Value="Arrow" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ToolButtonAccent" TargetType="Button" BasedOn="{StaticResource ToolButton}">
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Shell" Background="{StaticResource AccentBrush}" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Shell" Property="Background" Value="{StaticResource AccentHoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Shell" Property="Background" Value="{StaticResource BorderStrongBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+                            <Setter Property="Cursor" Value="Arrow" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ToolIcon" TargetType="TextBlock" BasedOn="{StaticResource IconGlyph}">
+        <Setter Property="FontFamily" Value="{StaticResource IconFont}" />
+        <Setter Property="FontSize" Value="17" />
+        <Setter Property="Margin" Value="0,0,7,0" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!--
+      Large ribbon buttons: icon above label, as Outlook does it. The glyph comes from Tag and the
+      label from Content, so a button is one line of XAML rather than a nested StackPanel.
+      Every glyph used has been checked to exist in Segoe Fluent Icons, because a missing code
+      point renders as a tofu box with no error at all.
+    -->
+    <ControlTemplate x:Key="RibbonButtonTemplate" TargetType="ButtonBase">
+        <Border x:Name="Shell"
+                Background="Transparent"
+                CornerRadius="5"
+                Margin="1,0"
+                Padding="7,5,7,4"
+                MinWidth="60"
+                Height="68">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <TextBlock x:Name="Glyph" Text="{TemplateBinding Tag}"
+                           Style="{StaticResource IconGlyph}"
+                           FontSize="23"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Foreground="{TemplateBinding Foreground}" />
+
+                <TextBlock x:Name="Label" Grid.Row="1"
+                           Text="{TemplateBinding Content}"
+                           FontSize="11"
+                           MaxWidth="72"
+                           LineHeight="13"
+                           TextWrapping="Wrap"
+                           TextAlignment="Center"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Top"
+                           Foreground="{TemplateBinding Foreground}" />
+            </Grid>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Shell" Property="Background" Value="{StaticResource HoverBrush}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="Shell" Property="Background" Value="{StaticResource BorderBrush}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="Glyph" Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+                <Setter TargetName="Label" Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+                <Setter Property="Cursor" Value="Arrow" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <Style x:Key="RibbonButton" TargetType="Button">
+        <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template" Value="{StaticResource RibbonButtonTemplate}" />
+    </Style>
+
+    <!-- Same shape, but it stays lit while its thing is on. -->
+    <Style x:Key="RibbonToggle" TargetType="ToggleButton">
+        <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border x:Name="Shell"
+                            Background="Transparent"
+                            CornerRadius="5"
+                            Margin="1,0"
+                            Padding="7,5,7,4"
+                            MinWidth="60"
+                            Height="68">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="30" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock x:Name="Glyph" Text="{TemplateBinding Tag}"
+                                       Style="{StaticResource IconGlyph}"
+                                       FontSize="23"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Foreground="{TemplateBinding Foreground}" />
+
+                            <TextBlock x:Name="Label" Grid.Row="1"
+                                       Text="{TemplateBinding Content}"
+                                       FontSize="11"
+                                       MaxWidth="72"
+                                       LineHeight="13"
+                                       TextWrapping="Wrap"
+                                       TextAlignment="Center"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Top"
+                                       Foreground="{TemplateBinding Foreground}" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Shell" Property="Background" Value="{StaticResource HoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Shell" Property="Background" Value="{StaticResource AccentSoftBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Glyph" Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+                            <Setter TargetName="Label" Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+                            <Setter Property="Cursor" Value="Arrow" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- A ribbon button that opens a menu, marked by a chevron under the label. -->
+    <Style x:Key="RibbonMenuButton" TargetType="Button">
+        <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Shell"
+                            Background="Transparent"
+                            CornerRadius="5"
+                            Margin="1,0"
+                            Padding="7,4,7,3"
+                            MinWidth="60"
+                            Height="68">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="29" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="9" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock x:Name="Glyph" Text="{TemplateBinding Tag}"
+                                       Style="{StaticResource IconGlyph}"
+                                       FontSize="22"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Foreground="{TemplateBinding Foreground}" />
+
+                            <TextBlock x:Name="Label" Grid.Row="1"
+                                       Text="{TemplateBinding Content}"
+                                       FontSize="11"
+                                       MaxWidth="72"
+                                       LineHeight="13"
+                                       TextWrapping="Wrap"
+                                       TextAlignment="Center"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Top"
+                                       Foreground="{TemplateBinding Foreground}" />
+
+                            <Path Grid.Row="2"
+                                  Data="M 0,0 L 4,4 L 8,0"
+                                  Stroke="{StaticResource TextMutedBrush}"
+                                  StrokeThickness="1.3"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Shell" Property="Background" Value="{StaticResource HoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Shell" Property="Background" Value="{StaticResource BorderBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Glyph" Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+                            <Setter TargetName="Label" Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+                            <Setter Property="Cursor" Value="Arrow" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- The name under each run of buttons, as on an Outlook ribbon. -->
+    <Style x:Key="RibbonGroupLabel" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+        <Setter Property="FontSize" Value="10.5" />
+        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="0,2,0,0" />
+    </Style>
+
+    <!-- Small square icon button, for pane furniture like expand and collapse. -->
+    <Style x:Key="IconButton" TargetType="Button">
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Shell" Background="Transparent" CornerRadius="4" Width="24" Height="22">
+                        <TextBlock Text="{TemplateBinding Tag}"
+                                   Style="{StaticResource IconGlyph}"
+                                   FontSize="16"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Shell" Property="Background" Value="{StaticResource HoverBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{StaticResource BorderStrongBrush}" />
+                            <Setter Property="Cursor" Value="Arrow" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== Tree ===== -->
+
+    <Style x:Key="TreeExpander" TargetType="ToggleButton">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Width" Value="18" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border Background="Transparent" Width="18" Height="24">
+                        <Path x:Name="Arrow"
+                              Data="M 0,0 L 4,4 L 0,8"
+                              Stroke="{StaticResource TextMutedBrush}"
+                              StrokeThickness="1.4"
+                              StrokeStartLineCap="Round"
+                              StrokeEndLineCap="Round"
+                              StrokeLineJoin="Round"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <!-- Swapping the geometry rather than rotating: a template trigger cannot
+                             target a Transform by name, only a framework element. -->
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Arrow" Property="Data" Value="M 0,0 L 4,4 L 8,0" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Arrow" Property="Stroke" Value="{StaticResource TextBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="TreeView">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="6,4" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TreeView">
+                    <ScrollViewer Focusable="False"
+                                  Padding="{TemplateBinding Padding}"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <ItemsPresenter />
+                    </ScrollViewer>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="TreeViewItem">
+        <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TreeViewItem">
+                    <StackPanel>
+                        <Border x:Name="Shell"
+                                Background="Transparent"
+                                CornerRadius="5"
+                                Margin="0,1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="18" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <ToggleButton x:Name="Expander"
+                                              Style="{StaticResource TreeExpander}"
+                                              ClickMode="Press"
+                                              IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}" />
+
+                                <ContentPresenter x:Name="PART_Header"
+                                                  Grid.Column="1"
+                                                  ContentSource="Header"
+                                                  HorizontalAlignment="Stretch"
+                                                  VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
+
+                        <ItemsPresenter x:Name="ItemsHost" Margin="15,0,0,0" />
+                    </StackPanel>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsExpanded" Value="False">
+                            <Setter TargetName="ItemsHost" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                        <Trigger Property="HasItems" Value="False">
+                            <Setter TargetName="Expander" Property="Visibility" Value="Hidden" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Shell" Property="Background" Value="{StaticResource HoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Shell" Property="Background" Value="{StaticResource AccentSoftBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== Splitters ===== -->
+
+    <Style TargetType="GridSplitter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <!-- The visible dividing line is the pane's own border; this is just a grab strip. -->
+                <ControlTemplate TargetType="GridSplitter">
+                    <Border x:Name="Shell" Background="Transparent" />
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Shell" Property="Background" Value="{StaticResource AccentSoftBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsDragging" Value="True">
+                            <Setter TargetName="Shell" Property="Background" Value="{StaticResource AccentSoftBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== Pane furniture ===== -->
+
+    <!-- The name of a pane. Used for all three so they read as siblings. -->
+    <Style x:Key="PaneTitle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Secondary captions inside a pane, such as the Original and Cleaned labels. -->
+    <Style x:Key="PaneHeader" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!--
+      A selected-state button: preview modes, View toggles and preset buttons all use it, so
+      "this one is active" looks the same everywhere.
+    -->
+    <Style x:Key="ModeToggle" TargetType="ToggleButton">
+        <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="Padding" Value="11,5" />
+        <Setter Property="Margin" Value="0,0,2,0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border x:Name="Shell"
+                            Background="Transparent"
+                            CornerRadius="5"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Shell" Property="Background" Value="{StaticResource HoverBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Shell" Property="Background" Value="{StaticResource AccentSoftBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+                            <Setter Property="FontWeight" Value="SemiBold" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+                            <Setter Property="Cursor" Value="Arrow" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- The ribbon tab strip: Home, Preset, View, Help. File stays a dropdown menu. -->
+    <Style x:Key="RibbonTab" TargetType="ToggleButton">
+        <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Grid>
+                        <Border x:Name="Shell" Background="Transparent" Padding="11,5,11,7">
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </Border>
+                        <Border x:Name="Underline"
+                                Height="2"
+                                Margin="9,0"
+                                CornerRadius="1"
+                                VerticalAlignment="Bottom"
+                                Background="{StaticResource AccentBrush}"
+                                Visibility="Collapsed" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+                            <Setter Property="FontWeight" Value="SemiBold" />
+                            <Setter TargetName="Underline" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True" />
+                                <Condition Property="IsChecked" Value="False" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Shell" Property="Background" Value="{StaticResource HoverBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+                        </MultiTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--
+      File batch checkbox: box only, with its accessible name supplied by the file template.
+    -->
+    <Style x:Key="TreeCheck" TargetType="CheckBox">
+        <Setter Property="Margin" Value="0,0,8,0" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid Background="Transparent" Width="17" Height="17">
+                        <Border x:Name="Box"
+                                CornerRadius="4"
+                                BorderThickness="1"
+                                BorderBrush="{StaticResource BorderStrongBrush}"
+                                Background="{StaticResource CardBrush}" />
+
+                        <Path x:Name="Tick"
+                              Data="M 4,8.6 L 6.8,11.4 L 12.8,5.2"
+                              Stroke="White"
+                              StrokeThickness="1.7"
+                              StrokeStartLineCap="Round"
+                              StrokeEndLineCap="Round"
+                              StrokeLineJoin="Round"
+                              Visibility="Collapsed" />
+
+                        <Border x:Name="Dash"
+                                Width="9" Height="2"
+                                CornerRadius="1"
+                                Background="White"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Visibility="Collapsed" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Box" Property="Background" Value="{StaticResource AccentBrush}" />
+                            <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                            <Setter TargetName="Tick" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="{x:Null}">
+                            <Setter TargetName="Box" Property="Background" Value="{StaticResource AccentBrush}" />
+                            <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                            <Setter TargetName="Dash" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="PaneToggle" TargetType="Button" BasedOn="{StaticResource ToolButton}">
+        <Setter Property="Padding" Value="5,3" />
+        <Setter Property="FontFamily" Value="{StaticResource IconFont}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+    </Style>
+
+</ResourceDictionary>
